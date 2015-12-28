@@ -12,41 +12,12 @@
         android:id="@+id/yourPointsText"
         android:textSize="16dp" />
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:weightSum="1"
-        android:gravity="center_horizontal">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add Choice"
-            android:id="@+id/addBtn"
-            android:textSize="10dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Edit Mode"
-            android:id="@+id/editBtn"
-            android:textSize="10dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Delete Mode"
-            android:id="@+id/deleteBtn"
-            android:textSize="10dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Normal Mode"
-            android:id="@+id/normalBtn"
-            android:textSize="9dp" />
-    </LinearLayout>
+        android:text="Add Choice"
+        android:id="@+id/addFavorBtn"
+        android:textSize="10dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -119,6 +90,7 @@
             android:layout_below="@+id/favorsRequestedOfYouText"
             android:layout_alignParentBottom="true"
             android:choiceMode="singleChoice" />
+
     </RelativeLayout>
 
 </LinearLayout>

@@ -2,7 +2,6 @@ package com.midifish.iou;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,8 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.ArrayList;
 
 public class MainActivity extends Activity {
 
@@ -23,8 +20,6 @@ public class MainActivity extends Activity {
     private ListView favorChoices;
     private ListView favorsYouRequested;
 
-    private ArrayList<String> favorChoicesArray;
-    private ArrayList<String> favorsYouRequestedArray;
     private ArrayAdapter<String> favorChoicesAdapter;
     private ArrayAdapter<String> favorsYouRequestedAdapter;
 
@@ -36,33 +31,14 @@ public class MainActivity extends Activity {
         //initialize data objects
         database = new DataIO(this);
         points = 1000;
-        favorChoicesArray = new ArrayList<>();
-        favorsYouRequestedArray = new ArrayList<>();
-
-        //get data from the database
-        ArrayList<Favor> choices = database.getFavorChoices();
-        ArrayList<Favor> youRequested = database.getFavorsYouRequested();
-
-        //build string list for favor choices
-        String current = "";
-        for (Favor favor : choices) {
-            current = favor.getDescription();
-            current += " " + Integer.toString(favor.getValue());
-            favorChoicesArray.add(current);
-        }
-        for (Favor favor : youRequested) {
-            current = favor.getDescription();
-            current += " " + Integer.toString(favor.getValue());
-            favorsYouRequestedArray.add(current);
-        }
 
         //set the string lists into the adapters
-        favorChoicesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favorChoicesArray);
-        favorsYouRequestedAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favorsYouRequestedArray);
+        favorChoicesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, database.getFavorChoicesStrings());
+        favorsYouRequestedAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, database.getFavorsYouRequestedStrings());
 
         //initialize UI stuff
         yourPointsText = (TextView) findViewById(R.id.yourPointsText);
-        addFavorBtn = (Button) findViewById(R.id.addBtn);
+        addFavorBtn = (Button) findViewById(R.id.addFavorBtn);
         favorChoices = (ListView) findViewById(R.id.favorChoicesList);
         favorsYouRequested = (ListView) findViewById(R.id.favorsYouRequestedList);
 
@@ -71,40 +47,49 @@ public class MainActivity extends Activity {
         favorChoices.setAdapter(favorChoicesAdapter);
         favorsYouRequested.setAdapter(favorsYouRequestedAdapter);
 
-        //create events for clicks
-        addFavorBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
         favorChoices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String selection = (String) favorChoices.getItemAtPosition(position);
-                points -= database.getFavorChoices().get(position).getValue();
-                yourPointsText.setText("Your Points: " + Integer.toString(points));
-                favorsYouRequestedArray.add(selection);
-                favorsYouRequestedAdapter.notifyDataSetChanged();
+                Favor favor = database.getFavorChoices().get(position);
+                requestFavor(favor);
             }
         });
 
         favorsYouRequested.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String selection = (String) favorsYouRequested.getItemAtPosition(position);
-                favorsYouRequestedArray.remove(selection);
-                favorsYouRequestedAdapter.notifyDataSetChanged();
+                Favor favor = database.getFavorsYouRequested().get(position);
+                clearFavorYouRequested(favor);
             }
         });
+    }
 
+    public void requestFavor(Favor favor) {
+        //add the favor to the database
+        database.addFavorsYouRequested(favor);
+        //refresh list
+        database.refreshFavorsYouRequestedStrings();
+        //notify adapter so updated list will be shown
+        favorsYouRequestedAdapter.notifyDataSetChanged();
 
+        //process points transaction
+        points -= favor.getValue();
+        yourPointsText.setText("Your Points: " + Integer.toString(points));
+    }
+
+    public void clearFavorYouRequested(Favor favor) {
+        //delete favor from the database
+        database.deleteFavorYouRequested(favor);
+        //refresh list
+        database.refreshFavorsYouRequestedStrings();
+        //notify adapter so updated list will be shown
+        favorsYouRequestedAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        database.close();
     }
 
     @Override

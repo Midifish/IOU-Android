@@ -16,10 +16,16 @@ public class DataIO extends SQLiteOpenHelper {
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_DESCRIPTION = "favorDescription";
     public static final String COLUMN_VALUE = "favorValue";
+    private ArrayList<String> favorChoicesStrings;
+    private ArrayList<String> favorsYouRequestedStrings;
 
     public DataIO(Context context)
     {
         super(context, DATABASE_NAME, null, 1);
+        favorChoicesStrings = new ArrayList<>();
+        favorsYouRequestedStrings = new ArrayList<>();
+        refreshFavorChoicesStrings();
+        refreshFavorsYouRequestedStrings();
     }
 
     @Override
@@ -58,17 +64,15 @@ public class DataIO extends SQLiteOpenHelper {
         contentValues.put(COLUMN_DESCRIPTION, desc);
         contentValues.put(COLUMN_VALUE, value);
         db.insert(FAVOR_CHOICES_TABLE_NAME, null, contentValues);
-        db.close();
     }
 
-    public void addFavorsYouRequested(String desc, int value)
+    public void addFavorsYouRequested(Favor favor)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_DESCRIPTION, desc);
-        contentValues.put(COLUMN_VALUE, value);
+        contentValues.put(COLUMN_DESCRIPTION, favor.getDescription());
+        contentValues.put(COLUMN_VALUE, favor.getValue());
         db.insert(FAVORS_YOU_REQUESTED_TABLE_NAME, null, contentValues);
-        db.close();
     }
 
     public void deleteFavorChoice (Favor favor)
@@ -77,16 +81,14 @@ public class DataIO extends SQLiteOpenHelper {
         db.delete(FAVOR_CHOICES_TABLE_NAME,
                 COLUMN_ID + " = ? ",
                 new String[]{Integer.toString(favor.getId())});
-        db.close();
     }
 
-    public void deleteFavorsYouRequested (Favor favor)
+    public void deleteFavorYouRequested (Favor favor)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(FAVORS_YOU_REQUESTED_TABLE_NAME,
                 COLUMN_ID + " = ? ",
                 new String[]{Integer.toString(favor.getId())});
-        db.close();
     }
 
     public ArrayList<Favor> getFavorChoices(){
@@ -103,7 +105,6 @@ public class DataIO extends SQLiteOpenHelper {
                 favors.add(favor);
             } while (cursor.moveToNext());
         }
-        db.close();
         return favors;
     }
 
@@ -121,7 +122,43 @@ public class DataIO extends SQLiteOpenHelper {
                 favors.add(favor);
             } while (cursor.moveToNext());
         }
-        db.close();
         return favors;
+    }
+
+    public void refreshFavorChoicesStrings(){
+        favorChoicesStrings.clear();
+        ArrayList<Favor> choices = getFavorChoices();
+        //build string list for favor choices
+        String current = "";
+        for (Favor favor : choices) {
+            current = favor.getDescription();
+            current += " " + Integer.toString(favor.getValue());
+            favorChoicesStrings.add(current);
+        }
+    }
+
+    public void refreshFavorsYouRequestedStrings(){
+        favorsYouRequestedStrings.clear();
+        ArrayList<Favor> yourRequests = getFavorsYouRequested();
+        //build string list for favor choices
+        String current = "";
+        for (Favor favor : yourRequests) {
+            current = favor.getDescription();
+            current += " " + Integer.toString(favor.getValue());
+            favorsYouRequestedStrings.add(current);
+        }
+    }
+
+    public ArrayList<String> getFavorChoicesStrings() {
+        return favorChoicesStrings;
+    }
+
+    public ArrayList<String> getFavorsYouRequestedStrings() {
+        return favorsYouRequestedStrings;
+    }
+
+    public void close() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.close();
     }
 }
